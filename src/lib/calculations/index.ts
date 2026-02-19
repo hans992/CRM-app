@@ -8,4 +8,7 @@ export {
   calculateTrend,
   calculateDealsLastMonth,
   calculateTotalValueLastMonth,
+  getFunnelData,
+  calculateForecast,
 } from "./kpi";
+export type { FunnelStage } from "./kpi";

@@ -5,6 +5,21 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Seeding database...");
 
+  // Create a default user if it doesn't exist
+  let defaultUser = await prisma.user.findFirst({
+    where: { email: "demo@example.com" },
+  });
+
+  if (!defaultUser) {
+    defaultUser = await prisma.user.create({
+      data: {
+        email: "demo@example.com",
+        name: "Demo User",
+        role: "SALES_REP",
+      },
+    });
+  }
+
   // Clear existing deals
   await prisma.deal.deleteMany({});
 
@@ -61,6 +76,7 @@ async function main() {
       title: dealNames[i],
       value,
       stage,
+      ownerId: defaultUser.id,
       createdAt,
       updatedAt: createdAt,
     });

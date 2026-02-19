@@ -83,3 +83,68 @@ export function calculateTotalValueLastMonth(deals: Deal[]): number {
     )
     .reduce((sum, deal) => sum + deal.value, 0);
 }
+
+export interface FunnelStage {
+  stage: string;
+  count: number;
+  value: number;
+}
+
+export function getFunnelData(deals: Deal[]): FunnelStage[] {
+  const stageOrder = ["Prospecting", "Qualified", "Negotiating", "Closed Won", "Lost"];
+  const grouped = deals.reduce(
+    (acc, deal) => {
+      const stage = deal.stage;
+      if (!acc[stage]) {
+        acc[stage] = { count: 0, value: 0 };
+      }
+      acc[stage].count += 1;
+      acc[stage].value += deal.value;
+      return acc;
+    },
+    {} as Record<string, { count: number; value: number }>
+  );
+
+  const ordered = stageOrder
+    .filter((s) => grouped[s])
+    .map((stage) => ({
+      stage,
+      count: grouped[stage].count,
+      value: grouped[stage].value,
+    }));
+
+  // Include any stages not in the predefined order
+  Object.keys(grouped)
+    .filter((s) => !stageOrder.includes(s))
+    .forEach((stage) => {
+      ordered.push({
+        stage,
+        count: grouped[stage].count,
+        value: grouped[stage].value,
+      });
+    });
+
+  return ordered;
+}
+
+const STAGE_PROBABILITIES: Record<string, number> = {
+  Prospecting: 0.1,
+  Qualified: 0.3,
+  Negotiating: 0.7,
+  "Closed Won": 1.0,
+  Lost: 0.0,
+};
+
+export function calculateForecast(deals: Deal[]): number {
+  const openDeals = deals.filter((deal) => deal.stage !== "Closed Won" && deal.stage !== "Lost");
+  
+  return openDeals.reduce((total, deal) => {
+    const probability = STAGE_PROBABILITIES[deal.stage] ?? 0.1;
+    const weightedValue = deal.value * probability;
+    
+    // Ensure we return a valid number (handle NaN/Infinity)
+    if (!isFinite(weightedValue)) return total;
+    
+    return total + weightedValue;
+  }, 0);
+}
