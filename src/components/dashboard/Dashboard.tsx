@@ -1,6 +1,8 @@
 import { KPICard } from "./KPICard";
 import { RecentDealsTable } from "./RecentDealsTable";
 import { PipelineFunnelChart } from "./PipelineFunnelChart";
+import { EmptyDashboardState } from "./EmptyDashboardState";
+import { TeamLeaderboard } from "./TeamLeaderboard";
 import {
   calculateKPIMetrics,
   calculateTrend,
@@ -10,18 +12,31 @@ import {
   calculateForecast,
 } from "@/lib/calculations";
 import type { Deal } from "@prisma/client";
+import { UserRole } from "@/lib/auth";
+
+type DealWithOwner = Deal & { owner: { id: string; name: string; email: string } | null };
 
 interface DashboardProps {
-  deals: Deal[];
-  notes: Array<{ dealId: string; id: string; content: string; createdAt: Date }>;
+  deals: DealWithOwner[];
+  userRole: string;
+  leaderboard: { userId: string; userName: string; totalClosedWonValue: number }[] | null;
 }
 
-export function Dashboard({ deals, notes }: DashboardProps) {
+export function Dashboard({ deals, userRole, leaderboard }: DashboardProps) {
+  if (deals.length === 0) {
+    return <EmptyDashboardState />;
+  }
+
+  const kpiStart = typeof performance !== "undefined" ? performance.now() : 0;
   const metrics = calculateKPIMetrics(deals);
   const dealsLastMonth = calculateDealsLastMonth(deals);
   const valueLastMonth = calculateTotalValueLastMonth(deals);
   const funnelData = getFunnelData(deals);
   const forecast = calculateForecast(deals);
+  if (typeof performance !== "undefined" && process.env.NODE_ENV === "development") {
+    const kpiMs = (performance.now() - kpiStart).toFixed(2);
+    console.log(`[KPI Engine] Execution time: ${kpiMs}ms`);
+  }
 
   const formatCurrency = (value: number) => {
     if (!isFinite(value) || isNaN(value)) return "$0.00";
@@ -70,6 +85,10 @@ export function Dashboard({ deals, notes }: DashboardProps) {
         />
       </div>
 
+      {(userRole === UserRole.ADMIN || userRole === UserRole.MANAGER) && leaderboard && (
+        <TeamLeaderboard entries={leaderboard} />
+      )}
+
       {funnelData.length > 0 ? (
         <div>
           <h2 className="mb-4 text-lg font-semibold text-gray-900">Pipeline Health</h2>
@@ -81,7 +100,7 @@ export function Dashboard({ deals, notes }: DashboardProps) {
         </div>
       )}
 
-      <RecentDealsTable deals={deals} notes={notes} />
+      <RecentDealsTable deals={deals} />
     </div>
   );
 }

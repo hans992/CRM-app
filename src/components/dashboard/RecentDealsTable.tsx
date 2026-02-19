@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Deal } from "@prisma/client";
-import { FileQuestion, Download, Trash2, Edit } from "lucide-react";
+import { FileQuestion, Download, Trash2 } from "lucide-react";
 import { bulkDeleteDeals, bulkUpdateDealStatus } from "@/app/actions/deal-bulk";
+import { getNotesForDeal } from "@/app/actions/note";
 import { DealDetailView } from "./DealDetailView";
 
 interface RecentDealsTableProps {
   deals: Deal[];
-  notes: Array<{ dealId: string; id: string; content: string; createdAt: Date }>;
 }
 
 const STAGE_COLORS: Record<string, string> = {
@@ -79,10 +79,23 @@ function downloadCSV(deals: Deal[]) {
   document.body.removeChild(link);
 }
 
-export function RecentDealsTable({ deals, notes }: RecentDealsTableProps) {
+export function RecentDealsTable({ deals }: RecentDealsTableProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
+  const [selectedDealNotes, setSelectedDealNotes] = useState<Array<{ id: string; content: string; createdAt: Date }>>([]);
   const [isBulkActionLoading, setIsBulkActionLoading] = useState(false);
+
+  useEffect(() => {
+    if (!selectedDeal) {
+      setSelectedDealNotes([]);
+      return;
+    }
+    let cancelled = false;
+    getNotesForDeal(selectedDeal.id).then((notes) => {
+      if (!cancelled) setSelectedDealNotes(notes);
+    });
+    return () => { cancelled = true; };
+  }, [selectedDeal?.id]);
 
   const recentDeals = [...deals]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -133,10 +146,6 @@ export function RecentDealsTable({ deals, notes }: RecentDealsTableProps) {
       alert(result.error || "Failed to update deals");
     }
   }
-
-  const dealNotes = selectedDeal
-    ? notes.filter((n) => n.dealId === selectedDeal.id)
-    : [];
 
   if (recentDeals.length === 0) {
     return (
@@ -272,7 +281,7 @@ export function RecentDealsTable({ deals, notes }: RecentDealsTableProps) {
 
       <DealDetailView
         deal={selectedDeal}
-        notes={dealNotes}
+        notes={selectedDealNotes}
         isOpen={selectedDeal !== null}
         onClose={() => setSelectedDeal(null)}
       />

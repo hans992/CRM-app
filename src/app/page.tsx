@@ -37,13 +37,11 @@ const getDeals = cache(async (userId: string, userRole: string, dateFilter: Retu
   }
   // Note: If ownerId is null (legacy deals), they're visible to all roles for now
 
+  // Include only owner for list display; notes are fetched on demand when opening Detail View to avoid N+1
   return prisma.deal.findMany({
     where: whereClause,
     orderBy: { createdAt: "desc" },
     include: {
-      notes: {
-        orderBy: { createdAt: "desc" },
-      },
       owner: {
         select: {
           id: true,
@@ -78,14 +76,33 @@ export default async function Home({ searchParams }: HomeProps) {
 
   const deals = await getDeals(user.id, user.role, dateFilter, statusFilter, ownerId);
 
-  const notes = deals.flatMap((deal) =>
-    deal.notes.map((note) => ({
-      dealId: deal.id,
-      id: note.id,
-      content: note.content,
-      createdAt: note.createdAt,
-    }))
-  );
+  const leaderboard =
+    canAccessAllDeals(user.role as import("@/lib/auth").UserRole)
+      ? await getLeaderboard()
+      : null;
+
+  async function getLeaderboard(): Promise<{ userId: string; userName: string; totalClosedWonValue: number }[]> {
+    const rows = await prisma.deal.groupBy({
+      by: ["ownerId"],
+      where: { stage: "Closed Won", ownerId: { not: null } },
+      _sum: { value: true },
+    });
+    const ownerIds = rows.map((r) => r.ownerId).filter(Boolean) as string[];
+    if (ownerIds.length === 0) return [];
+    const users = await prisma.user.findMany({
+      where: { id: { in: ownerIds } },
+      select: { id: true, name: true },
+    });
+    const userMap = new Map(users.map((u) => [u.id, u.name]));
+    return rows
+      .filter((r) => r.ownerId)
+      .map((r) => ({
+        userId: r.ownerId!,
+        userName: userMap.get(r.ownerId!) ?? "Unknown",
+        totalClosedWonValue: r._sum.value ?? 0,
+      }))
+      .sort((a, b) => b.totalClosedWonValue - a.totalClosedWonValue);
+  }
 
   return (
     <main className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
@@ -101,7 +118,7 @@ export default async function Home({ searchParams }: HomeProps) {
       </Suspense>
 
       <div className="mt-6">
-        <Dashboard deals={deals} notes={notes} />
+        <Dashboard deals={deals} userRole={user.role} leaderboard={leaderboard} />
       </div>
     </main>
   );
