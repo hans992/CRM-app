@@ -29,3 +29,9 @@ export interface KPIMetrics {
   dealsThisMonth: number;
   conversionRate?: number;
 }
+
+export interface TrendData {
+  value: number;
+  percentage: number;
+  isPositive: boolean;
+}
