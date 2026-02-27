@@ -1,6 +1,7 @@
 import { KPICard } from "./KPICard";
 import { RecentDealsTable } from "./RecentDealsTable";
 import { PipelineFunnelChart } from "./PipelineFunnelChart";
+import { RevenueTrendChart } from "./RevenueTrendChart";
 import { EmptyDashboardState } from "./EmptyDashboardState";
 import { TeamLeaderboard } from "./TeamLeaderboard";
 import {
@@ -9,6 +10,7 @@ import {
   calculateDealsLastMonth,
   calculateTotalValueLastMonth,
   getFunnelData,
+  getTrendSeriesByWeek,
   calculateForecast,
 } from "@/lib/calculations";
 import type { Deal } from "@prisma/client";
@@ -32,6 +34,7 @@ export function Dashboard({ deals, userRole, leaderboard }: DashboardProps) {
   const dealsLastMonth = calculateDealsLastMonth(deals);
   const valueLastMonth = calculateTotalValueLastMonth(deals);
   const funnelData = getFunnelData(deals);
+  const trendData = getTrendSeriesByWeek(deals);
   const forecast = calculateForecast(deals);
   if (typeof performance !== "undefined" && process.env.NODE_ENV === "development") {
     const kpiMs = (performance.now() - kpiStart).toFixed(2);
@@ -50,17 +53,20 @@ export function Dashboard({ deals, userRole, leaderboard }: DashboardProps) {
           title="Total Deals"
           value={metrics.totalDeals}
           trend={calculateTrend(metrics.totalDeals, deals.length - metrics.dealsThisMonth)}
+          delayMs={0}
         />
         <KPICard
           title="Total Value"
           value={formatCurrency(metrics.totalValue)}
           subtitle="Pipeline value"
           trend={calculateTrend(metrics.totalValue, metrics.totalValue - valueLastMonth)}
-          target={100000} // Example: $100k target
+          target={100000}
+          delayMs={50}
         />
         <KPICard
           title="Avg Deal Value"
           value={formatCurrency(metrics.averageDealValue)}
+          delayMs={100}
         />
         <KPICard
           title="Deals This Month"
@@ -71,7 +77,8 @@ export function Dashboard({ deals, userRole, leaderboard }: DashboardProps) {
               : undefined
           }
           trend={calculateTrend(metrics.dealsThisMonth, dealsLastMonth)}
-          target={15} // Example: 15 deals per month target
+          target={15}
+          delayMs={150}
         />
       </div>
 
@@ -80,8 +87,9 @@ export function Dashboard({ deals, userRole, leaderboard }: DashboardProps) {
           title="Weighted Forecast"
           value={formatCurrency(forecast)}
           subtitle="Expected revenue"
-          target={70000} // Example: $70k forecast target
+          target={70000}
           className="lg:col-span-1"
+          delayMs={200}
         />
       </div>
 
@@ -89,16 +97,22 @@ export function Dashboard({ deals, userRole, leaderboard }: DashboardProps) {
         <TeamLeaderboard entries={leaderboard} />
       )}
 
-      {funnelData.length > 0 ? (
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div>
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">Pipeline Health</h2>
-          <PipelineFunnelChart data={funnelData} />
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Pipeline health</h2>
+          {funnelData.length > 0 ? (
+            <PipelineFunnelChart data={funnelData} />
+          ) : (
+            <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-200 bg-surface text-muted">
+              <p className="text-sm">No data for this period</p>
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
-          <p className="text-sm text-gray-500">No data for this period</p>
+        <div>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Revenue trend</h2>
+          <RevenueTrendChart data={trendData} />
         </div>
-      )}
+      </div>
 
       <RecentDealsTable deals={deals} />
     </div>

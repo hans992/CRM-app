@@ -148,3 +148,34 @@ export function calculateForecast(deals: Deal[]): number {
     return total + weightedValue;
   }, 0);
 }
+
+export interface TrendSeriesPoint {
+  weekLabel: string;
+  dealCount: number;
+  totalValue: number;
+}
+
+/** Bucket deals by week for the last 12 weeks. Returns oldest to newest. */
+export function getTrendSeriesByWeek(deals: Deal[], weeks = 12): TrendSeriesPoint[] {
+  const now = new Date();
+  const points: TrendSeriesPoint[] = [];
+
+  for (let w = weeks - 1; w >= 0; w--) {
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - 7 * (w + 1));
+    weekStart.setHours(0, 0, 0, 0);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    const inWeek = deals.filter((deal) => {
+      const d = new Date(deal.createdAt);
+      return d >= weekStart && d <= weekEnd;
+    });
+    const totalValue = inWeek.reduce((sum, deal) => sum + deal.value, 0);
+    const label = weekStart.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    points.push({ weekLabel: label, dealCount: inWeek.length, totalValue });
+  }
+
+  return points;
+}

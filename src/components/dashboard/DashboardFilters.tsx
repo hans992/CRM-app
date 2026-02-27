@@ -36,20 +36,20 @@ export function DashboardFilters() {
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-      <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+      <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
         <Filter className="h-4 w-4" />
         <span>Filters</span>
       </div>
       <div className="flex flex-wrap gap-4">
         <div className="flex items-center gap-2">
-          <label htmlFor="range" className="text-sm text-gray-600">
+          <label htmlFor="range" className="text-sm text-muted-foreground">
             Date range:
           </label>
           <select
             id="range"
             value={currentRange}
             onChange={(e) => updateFilters(e.target.value, currentStatus)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="rounded-lg border border-slate-300 bg-surface px-3 py-1.5 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
           >
             {DATE_RANGES.map(({ value, label }) => (
               <option key={value} value={value}>
@@ -59,14 +59,14 @@ export function DashboardFilters() {
           </select>
         </div>
         <div className="flex items-center gap-2">
-          <label htmlFor="status" className="text-sm text-gray-600">
+          <label htmlFor="status" className="text-sm text-muted-foreground">
             Status:
           </label>
           <select
             id="status"
             value={currentStatus}
             onChange={(e) => updateFilters(currentRange, e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="rounded-lg border border-slate-300 bg-surface px-3 py-1.5 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
           >
             {STATUSES.map(({ value, label }) => (
               <option key={value} value={value}>

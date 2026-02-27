@@ -35,24 +35,22 @@ export function EmptyDashboardState() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8 rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-      {/* Welcome hero */}
+    <div className="mx-auto max-w-2xl space-y-8 rounded-2xl border border-slate-200 bg-surface p-8 shadow-card">
       <div className="text-center">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-100">
           <Sparkles className="h-7 w-7 text-amber-600" />
         </div>
-        <h2 className="mt-4 text-2xl font-bold text-gray-900">
+        <h2 className="mt-4 text-2xl font-bold text-slate-900">
           Welcome to your CRM
         </h2>
-        <p className="mt-2 text-gray-600">
+        <p className="mt-2 text-muted-foreground">
           Your pipeline is empty. Get started by adding deals or import sample
           data to explore the dashboard.
         </p>
       </div>
 
-      {/* Quick Start checklist */}
       <div>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Quick Start
         </h3>
         <ul className="space-y-2">
@@ -61,16 +59,16 @@ export function EmptyDashboardState() {
               <button
                 type="button"
                 onClick={() => toggleCheck(item.id)}
-                className="flex w-full items-center gap-3 rounded-lg border border-gray-200 bg-gray-50/50 px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                className="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-surface-muted px-4 py-3 text-left transition-colors hover:bg-slate-100"
               >
                 {item.done ? (
-                  <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600" />
+                  <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
                 ) : (
-                  <Circle className="h-5 w-5 shrink-0 text-gray-400" />
+                  <Circle className="h-5 w-5 shrink-0 text-slate-400" />
                 )}
                 <span
                   className={
-                    item.done ? "text-gray-500 line-through" : "text-gray-900"
+                    item.done ? "text-muted-foreground line-through" : "text-slate-900"
                   }
                 >
                   {item.label}
@@ -79,19 +77,18 @@ export function EmptyDashboardState() {
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-xs text-gray-500">
+        <p className="mt-2 text-xs text-muted-foreground">
           1. Use &quot;Add Deal&quot; above. 2. Open a deal and add a note.
           3. Track goals in the KPI cards once you have data.
         </p>
       </div>
 
-      {/* Import Sample Data */}
-      <div className="border-t border-gray-200 pt-6">
+      <div className="border-t border-slate-200 pt-6">
         <button
           type="button"
           onClick={handleImportSample}
           disabled={importing}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-blue-300 bg-blue-50/50 px-4 py-4 text-sm font-medium text-blue-700 transition-colors hover:border-blue-400 hover:bg-blue-50 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary-500/50 bg-primary-50 px-4 py-4 text-sm font-medium text-primary-700 transition-colors hover:border-primary-500 hover:bg-primary-100 disabled:opacity-50"
         >
           <Database className="h-5 w-5" />
           {importing ? "Importing…" : "Import Sample Data"}

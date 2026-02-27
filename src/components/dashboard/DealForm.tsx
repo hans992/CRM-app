@@ -37,28 +37,25 @@ export function DealForm({ isOpen, onClose }: DealFormProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4">
-      <div className="relative flex max-h-[90vh] w-full flex-col overflow-y-auto rounded-t-2xl bg-white shadow-xl sm:max-h-[85vh] sm:max-w-md sm:rounded-lg">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <h2 className="text-xl font-semibold text-gray-900">Add New Deal</h2>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm p-0 sm:items-center sm:p-4">
+      <div className="relative flex max-h-[90vh] w-full flex-col overflow-y-auto rounded-t-3xl bg-surface shadow-modal sm:max-h-[85vh] sm:max-w-md sm:rounded-2xl">
+        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+          <h2 className="text-xl font-semibold text-slate-900">Add New Deal</h2>
           <button
             onClick={onClose}
-            className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-lg p-1 text-muted transition-colors hover:bg-slate-100 hover:text-slate-600"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Form */}
         <form action={handleSubmit} className="px-6 py-4">
           <div className="space-y-4">
-            {/* Deal Name */}
             <div>
               <label
                 htmlFor="title"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-slate-700"
               >
                 Deal Name *
               </label>
@@ -67,16 +64,15 @@ export function DealForm({ isOpen, onClose }: DealFormProps) {
                 id="title"
                 name="title"
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-lg border border-slate-300 bg-surface px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                 placeholder="e.g., Enterprise Software License"
               />
             </div>
 
-            {/* Amount */}
             <div>
               <label
                 htmlFor="value"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-slate-700"
               >
                 Amount ($) *
               </label>
@@ -87,16 +83,15 @@ export function DealForm({ isOpen, onClose }: DealFormProps) {
                 required
                 min="0"
                 step="0.01"
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-lg border border-slate-300 bg-surface px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                 placeholder="5000"
               />
             </div>
 
-            {/* Status */}
             <div>
               <label
                 htmlFor="stage"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-slate-700"
               >
                 Status *
               </label>
@@ -104,7 +99,7 @@ export function DealForm({ isOpen, onClose }: DealFormProps) {
                 id="stage"
                 name="stage"
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-lg border border-slate-300 bg-surface px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
               >
                 <option value="">Select a stage</option>
                 {STAGES.map((stage) => (
@@ -115,11 +110,10 @@ export function DealForm({ isOpen, onClose }: DealFormProps) {
               </select>
             </div>
 
-            {/* Close Date */}
             <div>
               <label
                 htmlFor="closeDate"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-slate-700"
               >
                 Close Date
               </label>
@@ -127,24 +121,23 @@ export function DealForm({ isOpen, onClose }: DealFormProps) {
                 type="date"
                 id="closeDate"
                 name="closeDate"
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-lg border border-slate-300 bg-surface px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
               />
             </div>
           </div>
 
-          {/* Actions */}
           <div className="mt-6 flex gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+              className="flex-1 rounded-lg border border-slate-300 bg-surface px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:opacity-50"
+              className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary-700 disabled:opacity-50"
             >
               {isSubmitting ? "Creating..." : "Create Deal"}
             </button>

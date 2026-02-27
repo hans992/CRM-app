@@ -66,12 +66,12 @@ export function OptimisticNoteForm({
   return (
     <>
       {isAddingNote ? (
-        <form onSubmit={handleAddNote} className="mb-4 rounded-lg border border-gray-200 p-4">
+        <form onSubmit={handleAddNote} className="mb-4 rounded-xl border border-slate-200 bg-surface-muted p-4">
           <textarea
             value={noteContent}
             onChange={(e) => setNoteContent(e.target.value)}
             placeholder="Add a note about this deal..."
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+            className="w-full rounded-lg border border-slate-300 bg-surface px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
             rows={3}
             required
             disabled={isSubmitting}
@@ -80,7 +80,7 @@ export function OptimisticNoteForm({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-700 disabled:opacity-50"
             >
               {isSubmitting ? "Adding..." : "Add Note"}
             </button>
@@ -91,7 +91,7 @@ export function OptimisticNoteForm({
                 setNoteContent("");
               }}
               disabled={isSubmitting}
-              className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+              className="rounded-lg border border-slate-300 bg-surface px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
             >
               Cancel
             </button>
@@ -100,7 +100,7 @@ export function OptimisticNoteForm({
       ) : (
         <button
           onClick={() => setIsAddingNote(true)}
-          className="mb-4 flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+          className="mb-4 flex items-center gap-2 rounded-lg border border-slate-300 bg-surface px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
         >
           <Plus className="h-4 w-4" />
           Add Note

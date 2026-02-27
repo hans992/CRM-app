@@ -12,8 +12,8 @@ interface RecentDealsTableProps {
 }
 
 const STAGE_COLORS: Record<string, string> = {
-  "Closed Won": "bg-green-100 text-green-800",
-  "Negotiating": "bg-blue-100 text-blue-800",
+  "Closed Won": "bg-emerald-100 text-emerald-800",
+  "Negotiating": "bg-primary-100 text-primary-700",
   "Prospecting": "bg-amber-100 text-amber-800",
   "Qualified": "bg-cyan-100 text-cyan-800",
   "Lost": "bg-red-100 text-red-800",
@@ -44,10 +44,10 @@ function formatDate(date: Date) {
 }
 
 function StatusBadge({ stage }: { stage: string }) {
-  const colorClass = STAGE_COLORS[stage] ?? "bg-gray-100 text-gray-800";
+  const colorClass = STAGE_COLORS[stage] ?? "bg-slate-100 text-slate-800";
   return (
     <span
-      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${colorClass}`}
+      className={`inline-flex rounded-lg px-2.5 py-1 text-xs font-medium ${colorClass}`}
     >
       {stage}
     </span>
@@ -149,10 +149,10 @@ export function RecentDealsTable({ deals }: RecentDealsTableProps) {
 
   if (recentDeals.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-12 text-center shadow-sm">
-        <FileQuestion className="mx-auto h-12 w-12 text-gray-300" />
-        <h3 className="mt-4 text-lg font-medium text-gray-900">No deals found</h3>
-        <p className="mt-2 text-sm text-gray-500">
+      <div className="rounded-2xl border border-slate-200 bg-surface p-12 text-center shadow-card">
+        <FileQuestion className="mx-auto h-12 w-12 text-slate-300" />
+        <h3 className="mt-4 text-lg font-semibold text-slate-900">No deals found</h3>
+        <p className="mt-2 text-sm text-muted-foreground">
           {deals.length === 0
             ? 'Add your first deal to see it here. Click "Add Deal" to get started.'
             : "No deals match the current filters. Try adjusting your filters."}
@@ -163,19 +163,19 @@ export function RecentDealsTable({ deals }: RecentDealsTableProps) {
 
   return (
     <>
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 sm:px-6">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Deals</h2>
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-surface shadow-card">
+        <div className="flex items-center justify-between border-b border-slate-200 bg-surface-muted px-4 py-3 sm:px-6">
+          <h2 className="text-lg font-semibold text-slate-900">Recent Deals</h2>
           <div className="flex items-center gap-2">
             {selectedIds.size > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">{selectedIds.size} selected</span>
+                <span className="text-sm text-muted-foreground">{selectedIds.size} selected</span>
                 <select
                   onChange={(e) => {
                     if (e.target.value) handleBulkStatusUpdate(e.target.value);
                   }}
                   disabled={isBulkActionLoading}
-                  className="rounded-md border border-gray-300 px-2 py-1 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="rounded-lg border border-slate-300 bg-surface px-2 py-1 text-xs focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                   defaultValue=""
                 >
                   <option value="">Change status...</option>
@@ -188,7 +188,7 @@ export function RecentDealsTable({ deals }: RecentDealsTableProps) {
                 <button
                   onClick={handleBulkDelete}
                   disabled={isBulkActionLoading}
-                  className="flex items-center gap-1 rounded-md border border-red-300 bg-red-50 px-2 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50"
+                  className="flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50"
                 >
                   <Trash2 className="h-3 w-3" />
                   Delete
@@ -197,7 +197,7 @@ export function RecentDealsTable({ deals }: RecentDealsTableProps) {
             )}
             <button
               onClick={() => downloadCSV(recentDeals)}
-              className="flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              className="flex items-center gap-1 rounded-lg border border-slate-300 bg-surface px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
             >
               <Download className="h-4 w-4" />
               CSV
@@ -205,48 +205,48 @@ export function RecentDealsTable({ deals }: RecentDealsTableProps) {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-surface-muted">
               <tr>
                 <th scope="col" className="w-12 px-4 py-3 sm:px-6">
                   <input
                     type="checkbox"
                     checked={selectedIds.size === recentDeals.length && recentDeals.length > 0}
                     onChange={toggleSelectAll}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                   />
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 sm:px-6"
+                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:px-6"
                 >
                   Deal Name
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 sm:px-6"
+                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:px-6"
                 >
                   Amount
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 sm:px-6"
+                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:px-6"
                 >
                   Status
                 </th>
                 <th
                   scope="col"
-                  className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 sm:px-6"
+                  className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:px-6"
                 >
                   Date
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody className="divide-y divide-slate-200 bg-surface">
               {recentDeals.map((deal) => (
                 <tr
                   key={deal.id}
-                  className="cursor-pointer hover:bg-gray-50"
+                  className="cursor-pointer transition-colors hover:bg-slate-50/80"
                   onClick={() => setSelectedDeal(deal)}
                 >
                   <td
@@ -257,19 +257,19 @@ export function RecentDealsTable({ deals }: RecentDealsTableProps) {
                       type="checkbox"
                       checked={selectedIds.has(deal.id)}
                       onChange={() => toggleSelect(deal.id)}
-                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                     />
                   </td>
-                  <td className="whitespace-nowrap px-4 py-4 text-sm font-medium text-gray-900 sm:px-6">
+                  <td className="whitespace-nowrap px-4 py-4 text-sm font-medium text-slate-900 sm:px-6">
                     {deal.title}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-600 sm:px-6">
+                  <td className="whitespace-nowrap px-4 py-4 text-sm text-slate-600 sm:px-6">
                     {formatCurrency(deal.value)}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4 sm:px-6">
                     <StatusBadge stage={deal.stage} />
                   </td>
-                  <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-500 sm:px-6">
+                  <td className="whitespace-nowrap px-4 py-4 text-sm text-muted-foreground sm:px-6">
                     {formatDate(deal.createdAt)}
                   </td>
                 </tr>

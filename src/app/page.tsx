@@ -57,10 +57,10 @@ export default async function Home({ searchParams }: HomeProps) {
   const user = await getCurrentUser();
   if (!user) {
     return (
-      <main className="min-h-screen bg-gray-50 p-8">
+      <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100/80 p-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Unauthorized</h1>
-          <p className="mt-2 text-gray-600">Please log in to access the dashboard.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Unauthorized</h1>
+          <p className="mt-2 text-muted-foreground">Please log in to access the dashboard.</p>
         </div>
       </main>
     );
@@ -105,15 +105,25 @@ export default async function Home({ searchParams }: HomeProps) {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-          CRM Dashboard
-        </h1>
-        <AddDealButton />
-      </div>
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100/80 p-4 sm:p-6 lg:p-8">
+      <header className="mb-6 flex items-center justify-between border-b border-slate-200 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+            <span className="text-sm font-bold text-primary-foreground">C</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            CRM Dashboard
+          </h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+            {user.name}
+          </span>
+          <AddDealButton />
+        </div>
+      </header>
 
-      <Suspense fallback={<div className="h-10 animate-pulse rounded bg-gray-200" />}>
+      <Suspense fallback={<div className="h-10 animate-pulse rounded-lg bg-slate-200" />}>
         <DashboardFilters />
       </Suspense>
 

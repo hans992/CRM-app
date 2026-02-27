@@ -1,3 +1,37 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --color-primary: 79 70 229;
+  --color-primary-foreground: 255 255 255;
+  --color-surface: 255 255 255;
+  --color-surface-muted: 248 250 252;
+  --color-muted: 100 116 139;
+  --color-muted-foreground: 71 85 105;
+  --radius-card: 1rem;
+  --radius-modal: 1.25rem;
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  --shadow-modal: 0 25px 50px -12px rgb(0 0 0 / 0.15);
+}
+
+@layer base {
+  body {
+    @apply bg-gradient-to-br from-slate-50 to-slate-100/80 text-slate-900;
+  }
+}
+
+@keyframes kpi-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-kpi-reveal {
+  animation: kpi-reveal 0.4s ease-out forwards;
+}
