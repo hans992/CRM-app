@@ -36,14 +36,14 @@ function ChartContent({ data }: RevenueTrendChartProps) {
 
   if (validData.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-200 bg-surface text-muted">
+      <div className="flex min-h-32 items-center justify-center rounded-2xl border border-slate-200 bg-surface py-8 text-muted">
         No trend data to display
       </div>
     );
   }
 
   return (
-    <div className="h-72 w-full rounded-2xl border border-slate-200 bg-surface p-4 shadow-card">
+    <div className="h-80 w-full rounded-2xl border border-slate-200 bg-surface p-4 shadow-card">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={validData}
@@ -85,6 +85,7 @@ function ChartContent({ data }: RevenueTrendChartProps) {
             }}
           />
           <Area
+            yAxisId="value"
             type="monotone"
             dataKey="totalValue"
             stroke="#4f46e5"
@@ -103,7 +104,7 @@ export function RevenueTrendChart({ data }: RevenueTrendChartProps) {
   return (
     <ErrorBoundary
       fallback={
-        <div className="flex h-72 items-center justify-center rounded-2xl border border-slate-200 bg-surface text-muted">
+        <div className="flex min-h-32 items-center justify-center rounded-2xl border border-slate-200 bg-surface py-8 text-muted">
           Unable to display chart. Please refresh the page.
         </div>
       }

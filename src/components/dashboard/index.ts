@@ -1,4 +1,7 @@
 export { Dashboard } from "./Dashboard";
+export { DashboardContent } from "./DashboardContent";
+export { DashboardPreferencesButton, DashboardPreferencesModal } from "./DashboardPreferencesModal";
+export { PipelineKanban } from "./PipelineKanban";
 export { KPICard } from "./KPICard";
 export { DealForm } from "./DealForm";
 export { AddDealButton } from "./AddDealButton";

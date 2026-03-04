@@ -90,14 +90,14 @@ export function KPICard({
 
   return (
     <div
-      className={`rounded-2xl border border-slate-200 bg-surface p-6 shadow-card transition-all hover:shadow-modal hover:border-slate-300 opacity-0 animate-kpi-reveal ${className}`}
+      className={`flex min-h-fit flex-col overflow-visible rounded-2xl border border-slate-200 bg-surface p-4 shadow-card transition-all hover:shadow-modal hover:border-slate-300 opacity-0 animate-kpi-reveal ${className}`}
       style={{ animationDelay: `${delayMs}ms` }}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <div className="mt-2 flex items-baseline gap-2">
-            <p className="text-3xl font-bold tracking-tight text-slate-900">{value}</p>
+          <div className="mt-2 flex flex-wrap items-baseline gap-2">
+            <p className="text-2xl font-bold tracking-tight text-slate-900">{value}</p>
             {trend && (
               <div
                 className={`flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${
@@ -125,11 +125,11 @@ export function KPICard({
             <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>
           )}
           {target !== undefined && progressPercentage !== undefined && (
-            <div className="mt-3 flex items-center gap-2">
+            <div className="mt-3 flex flex-wrap items-center gap-2">
               <ProgressRing percentage={progressPercentage} />
-              <div className="flex-1">
-                <div className="flex items-center justify-between text-xs text-slate-600">
-                  <span>Target: {typeof value === "string" ? value.replace(/\d+(\.\d+)?/, target.toLocaleString()) : target.toLocaleString()}</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center justify-between gap-x-2 text-xs text-slate-600">
+                  <span>Target: {typeof value === "string" ? value.replace(/\d+(\.\d+)?/, target.toLocaleString("en-US")) : target.toLocaleString("en-US")}</span>
                   <span className="font-medium">
                     {progressPercentage.toFixed(1)}% complete
                   </span>

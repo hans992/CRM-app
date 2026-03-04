@@ -90,3 +90,30 @@ export async function updateDeal(dealId: string, formData: FormData) {
     return { error: "Failed to update deal" };
   }
 }
+
+export async function updateDealStage(dealId: string, newStage: string): Promise<{ error?: string }> {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Unauthorized" };
+
+  const deal = await prisma.deal.findUnique({ where: { id: dealId } });
+  if (!deal) return { error: "Deal not found" };
+
+  if (deal.ownerId !== user.id && user.role !== "ADMIN" && user.role !== "MANAGER") {
+    return { error: "You don't have permission to update this deal" };
+  }
+
+  const validStages = ["Prospecting", "Qualified", "Negotiating", "Closed Won", "Lost"];
+  if (!validStages.includes(newStage)) return { error: "Invalid stage" };
+
+  try {
+    await prisma.deal.update({
+      where: { id: dealId },
+      data: { stage: newStage },
+    });
+    revalidatePath("/");
+    return {};
+  } catch (e) {
+    console.error("Error updating deal stage:", e);
+    return { error: "Failed to update stage" };
+  }
+}

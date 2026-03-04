@@ -1,43 +1,55 @@
 # CRM App
 
-A Next.js CRM with pipeline KPIs, role-based access, and team leaderboards.
+A Next.js CRM with customizable dashboard KPIs, pipeline (table + Kanban), contacts, tasks, reports, and role-based access.
 
 ## Tech Stack
 
 - **Next.js** (App Router) – React framework, server components, server actions
+- **NextAuth.js** (v5) – authentication (Credentials provider), session, protected routes
 - **Prisma** – ORM and migrations (SQLite by default)
 - **Tailwind CSS** – styling
-- **Shadcn-style UI** – functional components with Tailwind (no shadcn dependency)
-- **Recharts** – pipeline funnel chart
+- **Recharts** – pipeline funnel chart, revenue trend (area) chart
 - **Zod** – validation for forms and server actions
+- **Zustand** – client state for dashboard preferences (hydrated from server)
+- **@dnd-kit** – drag-and-drop for pipeline Kanban board
 - **TypeScript** – end-to-end typing
 
 ## Architecture
 
+### Routes
+
+- **`/`** – Deals: dashboard (table view) or Kanban (board view), filters, preferences
+- **`/login`** – Sign in (email + password; credentials via NextAuth)
+- **`/contacts`** – Contact list, search, add; **`/contacts/[id]`** – contact detail (360° view)
+- **`/tasks`** – Task list, filters, assignee; create/edit/delete tasks
+- **`/reports`** – Reports view (KPIs, pipeline health, revenue trend, leaderboard) with date/status filters
+
+Layout: **AppShell** (collapsible sidebar + main content) wraps all dashboard routes; auth middleware protects `/`, `/contacts`, `/tasks`, `/reports`.
+
 ### KPI Engine (`/src/lib/calculations`)
 
-All business metrics live in **`/src/lib/calculations`** so the UI stays presentational:
+Business metrics live in **`/src/lib/calculations`** so the UI stays presentational:
 
-- **`kpi.ts`** – core metrics and formulas (see [Formula Guide](#formula-guide) below).
-- **`index.ts`** – re-exports for the rest of the app.
+- **`kpi.ts`** – core metrics and formulas (see [Formula Guide](#formula-guide) below)
+- **`index.ts`** – re-exports
 
-The dashboard calls the engine once per request; in **development**, execution time is logged to the server console as `[KPI Engine] Execution time: Xms`.
+The dashboard and reports pages call the engine once per request.
 
 ### RBAC (Role-Based Access Control)
 
 Defined in **`/src/lib/auth.ts`**:
 
-- **ADMIN** – full access; sees all deals and team leaderboard.
-- **MANAGER** – same as ADMIN for deal visibility and leaderboard.
-- **SALES_REP** – sees only their own deals; no leaderboard.
+- **ADMIN** – full access; sees all deals, team leaderboard, reports
+- **MANAGER** – same as ADMIN for deal visibility and leaderboard
+- **SALES_REP** – sees only their own deals; no leaderboard
 
-Deal list and detail views respect ownership; server actions enforce access before mutating data.
+Deal list, filters, and server actions enforce ownership and access.
 
-### Data Loading (Avoiding N+1)
+### Data Loading
 
-- **Deals list** – single query with `include: { owner }` only. **Notes are not** included on the main list.
-- **Detail view** – when a user opens a deal, notes are loaded on demand via **`getNotesForDeal(dealId)`** in `/src/app/actions/note.ts`, so the main list query stays light.
-- **Leaderboard** – one `groupBy` for Closed Won by `ownerId`, then one `findMany` for user names (no per-row user fetch).
+- **Deals list** – single query with `include: { owner }`. Notes loaded on demand in deal detail via **`getNotesForDeal(dealId)`** in `/src/app/actions/note.ts`.
+- **Leaderboard** – one `groupBy` for Closed Won by `ownerId`, then one `findMany` for user names.
+- **Contacts / Tasks** – server actions in `/src/app/actions/contact.ts` and `/src/app/actions/task.ts`; Prisma models `Contact`, `Company`, `Task`.
 
 ## Setup
 
@@ -47,23 +59,31 @@ Deal list and detail views respect ownership; server actions enforce access befo
 npm install
 ```
 
-### 2. Database (migrate and seed)
+### 2. Environment
+
+Copy `.env.example` to `.env` and set:
+
+- **`DATABASE_URL`** – Prisma connection (default `file:./dev.db` for SQLite)
+- **`AUTH_SECRET`** – required for NextAuth in production; generate with `openssl rand -base64 32`
+- **`DEMO_PASSWORD`** (optional) – in production, credentials login can require this password
+
+### 3. Database (migrate and seed)
 
 ```bash
 npx prisma migrate dev
-npm run seed
+npx prisma db seed
 ```
 
-- **Migrate** – applies the schema (e.g. `prisma/migrations/`) to the DB.
-- **Seed** – creates a default user (`demo@example.com`) and sample deals. Seed logic is shared with the “Import Sample Data” button (see `/src/lib/seed.ts` and `/src/app/actions/seed.ts`).
+- **Migrate** – applies the schema to the DB.
+- **Seed** – creates users (`demo@example.com`, plus Admin/Manager/Sales reps) and sample deals. Seed logic is shared with the “Import Sample Data” action (`/src/lib/seed.ts`, `/src/app/actions/seed.ts`).
 
-### 3. Run the app
+### 4. Run the app
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The app uses a simulated session (default user from DB); replace with NextAuth or your auth layer in production.
+Open [http://localhost:3000](http://localhost:3000). Sign in at `/login` (e.g. `demo@example.com` with your password; if no password is enforced locally, any non-empty password may work after seed). After login you can use Deals (table/board), Contacts, Tasks, and Reports.
 
 ---
 
@@ -95,12 +115,6 @@ Formulas are implemented in **`/src/lib/calculations/kpi.ts`**.
 
 - **Code:** `calculateForecast(deals)` – only open stages are summed; Closed Won / Lost are excluded.
 
-### Velocity
-
-- **Velocity** (e.g. sales velocity or deal velocity) is **not** implemented in this repo.
-- A common form is: **Velocity = (Number of deals × Average deal value × Win rate) / Sales cycle length**.
-- You can add it in `/src/lib/calculations/kpi.ts` using existing helpers: `calculateTotalValue`, `calculateConversionRate`, and deal counts/time ranges as needed.
-
 ### Trend (period-over-period)
 
 - **Formula:** `((current − previous) / previous) × 100` (percentage change).
@@ -111,24 +125,36 @@ Formulas are implemented in **`/src/lib/calculations/kpi.ts`**.
 ```
 src/
   app/
-    page.tsx          # Home: auth, filters, deals query, leaderboard (admin/manager)
-    actions/         # Server actions: deal, note, deal-bulk, seed
+    (dashboard)/           # Protected routes: layout (AppShell), page (Deals), contacts, tasks, reports
+      page.tsx             # Deals: table or Kanban, dashboard widgets, filters
+      layout.tsx           # getCurrentUser, AppShell
+      contacts/            # List, search, add; [id] detail
+      tasks/               # List, filters, add
+      reports/             # ReportsView, ReportsFilters
+    login/
+      page.tsx             # Sign-in form (NextAuth credentials)
+    api/auth/[...nextauth]/  # NextAuth route handlers
+    actions/               # Server actions: auth, deal, note, deal-bulk, seed, contact, task, preferences
+    layout.tsx
   components/
-    dashboard/       # Dashboard, KPICard, EmptyDashboardState, TeamLeaderboard, etc.
+    dashboard/             # Dashboard, DashboardContent, KPICard, PipelineKanban, etc.
+    layout/
+      AppShell.tsx         # Sidebar (Deals, Contacts, Tasks, Reports), user menu
   lib/
-    calculations/   # KPI engine (kpi.ts, index.ts)
-    auth.ts         # getCurrentUser, canAccessAllDeals, UserRole
-    prisma.ts       # Prisma client singleton
-    seed.ts         # Reusable seed logic (CLI + Import Sample Data)
-    filters.ts      # Date/status filter helpers
+    calculations/         # KPI engine (kpi.ts, index.ts)
+    auth.ts               # getCurrentUser, canAccessAllDeals, UserRole
+    prisma.ts             # Prisma client singleton
+    seed.ts               # Reusable seed logic (CLI + Import Sample Data)
+    filters.ts            # Date/status filter helpers
 prisma/
-  schema.prisma     # User, Deal, Note, etc.
-  seed.ts           # CLI seed (creates user + calls runSeed)
+  schema.prisma            # User, Contact, Company, Deal, Note, Task, Activity
+  seed.ts                 # CLI seed (users + runSeed)
 ```
 
 ## Conventions
 
 - **Functional components**; Tailwind for layout and styling.
 - **KPI and formulas** live in `/lib/calculations` only.
-- **Server actions** for mutations and for on-demand reads (e.g. notes for detail view).
+- **Server actions** for mutations and for on-demand reads (e.g. notes for deal detail).
+- **NextAuth** for auth; middleware protects dashboard routes; RBAC in `getCurrentUser` and server logic.
 - **Include only what you need** in Prisma queries to avoid N+1 and large payloads.

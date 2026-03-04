@@ -1,8 +1,9 @@
 /**
  * Authentication utilities
- * In a real app, this would integrate with NextAuth.js or similar
- * For now, we'll use a simple session simulation
+ * Uses NextAuth.js session; RBAC preserved
  */
+
+import { auth } from "@/auth";
 
 export enum UserRole {
   ADMIN = "ADMIN",
@@ -18,44 +19,18 @@ export interface User {
 }
 
 /**
- * Get current user from session
- * In production, this would read from cookies/JWT
+ * Get current user from NextAuth session
  */
 export async function getCurrentUser(): Promise<User | null> {
-  // Simulate session - in production, use NextAuth or similar
-  // For demo purposes, fetch the default user from database
-  // In real app: const session = await getServerSession();
-  
-  const { prisma } = await import("@/lib/prisma");
-  
-  // For demo: fetch the first user (created by seed script)
-  // In production: const userId = session?.user?.id;
-  const user = await prisma.user.findFirst({
-    where: { email: "demo@example.com" },
-  });
-  
-  if (!user) {
-    // If no user exists, create a default one
-    const newUser = await prisma.user.create({
-      data: {
-        email: "demo@example.com",
-        name: "Demo User",
-        role: UserRole.SALES_REP,
-      },
-    });
-    return {
-      id: newUser.id,
-      email: newUser.email,
-      name: newUser.name,
-      role: newUser.role as UserRole,
-    };
-  }
-  
+  const session = await auth();
+  if (!session?.user?.email) return null;
+
+  const u = session.user as { id?: string; email: string; name?: string; role?: string };
   return {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role as UserRole,
+    id: u.id ?? "",
+    email: u.email,
+    name: u.name ?? u.email,
+    role: (u.role as UserRole) ?? UserRole.SALES_REP,
   };
 }
 

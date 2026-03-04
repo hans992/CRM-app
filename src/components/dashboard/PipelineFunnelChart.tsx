@@ -47,14 +47,14 @@ function ChartContent({ data }: PipelineFunnelChartProps) {
 
   if (validData.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-200 bg-surface text-muted">
+      <div className="flex min-h-32 items-center justify-center rounded-2xl border border-slate-200 bg-surface py-8 text-muted">
         No pipeline data to display
       </div>
     );
   }
 
   return (
-    <div className="h-64 w-full rounded-2xl border border-slate-200 bg-surface p-4 shadow-card">
+    <div className="h-80 w-full rounded-2xl border border-slate-200 bg-surface p-4 shadow-card">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={validData}
@@ -107,7 +107,7 @@ export function PipelineFunnelChart({ data }: PipelineFunnelChartProps) {
   return (
     <ErrorBoundary
       fallback={
-        <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-200 bg-surface text-muted">
+        <div className="flex min-h-32 items-center justify-center rounded-2xl border border-slate-200 bg-surface py-8 text-muted">
           Unable to display chart. Please refresh the page.
         </div>
       }
