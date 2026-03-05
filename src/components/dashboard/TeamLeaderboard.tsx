@@ -29,7 +29,7 @@ function formatCurrency(value: number) {
 export function TeamLeaderboard({ entries }: TeamLeaderboardProps) {
   if (entries.length === 0) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-surface p-6 shadow-card">
+      <div className="flex h-full min-h-0 flex-col justify-center rounded-2xl border border-slate-200 bg-surface p-6 shadow-card">
         <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-900">
           <Trophy className="h-5 w-5 text-amber-500" />
           Team Leaderboard
@@ -40,15 +40,15 @@ export function TeamLeaderboard({ entries }: TeamLeaderboardProps) {
   }
 
   return (
-    <div className="flex min-h-fit flex-col overflow-visible rounded-2xl border border-slate-200 bg-surface shadow-card">
-      <div className="border-b border-slate-200 bg-surface-muted px-4 py-2 sm:px-6">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-surface shadow-card">
+      <div className="shrink-0 border-b border-slate-200 bg-surface-muted px-4 py-2 sm:px-6">
         <h2 className="flex items-center gap-2 text-base font-semibold text-slate-900">
           <Trophy className="h-4 w-4 text-amber-500" />
           Team Leaderboard
         </h2>
         <p className="mt-0.5 text-xs text-muted-foreground">Ranked by total closed-won value</p>
       </div>
-      <ul className="divide-y divide-slate-200 overflow-visible">
+      <ul className="min-h-0 flex-1 divide-y divide-slate-200 overflow-y-auto">
         {entries.slice(0, MAX_VISIBLE_ENTRIES).map((entry, index) => (
           <li
             key={entry.userId}

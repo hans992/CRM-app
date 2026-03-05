@@ -43,7 +43,7 @@ function ChartContent({ data }: RevenueTrendChartProps) {
   }
 
   return (
-    <div className="h-80 w-full rounded-2xl border border-slate-200 bg-surface p-4 shadow-card">
+    <div className="h-full min-h-0 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={validData}

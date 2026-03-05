@@ -3,6 +3,7 @@ export { DashboardContent } from "./DashboardContent";
 export { DashboardPreferencesButton, DashboardPreferencesModal } from "./DashboardPreferencesModal";
 export { PipelineKanban } from "./PipelineKanban";
 export { KPICard } from "./KPICard";
+export { WidgetSkeleton } from "./WidgetSkeleton";
 export { DealForm } from "./DealForm";
 export { AddDealButton } from "./AddDealButton";
 export { RecentDealsTable } from "./RecentDealsTable";

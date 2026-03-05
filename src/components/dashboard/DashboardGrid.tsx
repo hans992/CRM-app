@@ -17,12 +17,15 @@ interface DashboardGridProps {
   layout: Layout;
   onLayoutChange: (layout: Layout) => void;
   children: React.ReactNode;
+  /** When true, dragging and resizing are disabled (e.g. during loading). */
+  disabled?: boolean;
 }
 
 export function DashboardGrid({
   layout,
   onLayoutChange,
   children,
+  disabled = false,
 }: DashboardGridProps) {
   const [saving, setSaving] = useState(false);
 
@@ -30,6 +33,7 @@ export function DashboardGrid({
     (newLayout: Layout) => {
       onLayoutChange(newLayout);
       setSaving(true);
+      // Persists full layout (including w/h from resize and x/y from drag) to the API.
       updateDashboardLayout(newLayout as DashboardLayoutItem[]).then(() => {
         setSaving(false);
       });
@@ -38,7 +42,7 @@ export function DashboardGrid({
   );
 
   return (
-    <div className="relative">
+    <div className="relative w-full overflow-x-auto min-w-0">
       {saving && (
         <div className="absolute right-0 top-0 z-10 rounded bg-slate-800 px-2 py-1 text-xs text-white">
           Saving…
@@ -51,8 +55,9 @@ export function DashboardGrid({
         cols={COLS}
         rowHeight={ROW_HEIGHT}
         margin={MARGIN}
-        isDraggable={true}
-        isResizable={false}
+        isDraggable={!disabled}
+        isResizable={!disabled}
+        resizeHandles={["se"]}
         compactType="vertical"
         preventCollision={false}
       >

@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { X } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { X, Loader2 } from "lucide-react";
+import { dealFormSchema, type DealFormValues, DEAL_STAGES } from "@/lib/zod-schemas";
 import { createDeal } from "@/app/actions/deal";
 
 interface DealFormProps {
@@ -9,32 +11,51 @@ interface DealFormProps {
   onClose: () => void;
 }
 
-const STAGES = [
-  "Prospecting",
-  "Qualified",
-  "Negotiating",
-  "Closed Won",
-  "Lost",
-];
+const defaultValues: DealFormValues = {
+  title: "",
+  value: "",
+  stage: "",
+  closeDate: "",
+};
 
 export function DealForm({ isOpen, onClose }: DealFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<DealFormValues>({
+    resolver: zodResolver(dealFormSchema),
+    defaultValues,
+  });
 
   if (!isOpen) return null;
 
-  async function handleSubmit(formData: FormData) {
-    setIsSubmitting(true);
+  async function onSubmit(data: DealFormValues) {
+    const formData = new FormData();
+    formData.set("title", data.title);
+    formData.set("value", data.value);
+    formData.set("stage", data.stage);
+    if (data.closeDate) formData.set("closeDate", data.closeDate);
+
     const result = await createDeal(formData);
-    setIsSubmitting(false);
 
     if (result.success) {
+      reset(defaultValues);
       onClose();
-      // Reset form by reloading
       window.location.reload();
     } else {
+      // Server-side error (e.g. auth) – could set a form-level error state
       alert(result.error || "Failed to create deal");
     }
   }
+
+  const inputBase =
+    "mt-1 block w-full rounded-lg border bg-surface px-3 py-2 shadow-sm focus:outline-none focus:ring-1";
+  const inputError =
+    "border-red-500 focus:border-red-500 focus:ring-red-500";
+  const inputOk =
+    "border-slate-300 focus:border-primary-500 focus:ring-primary-500";
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm p-0 sm:items-center sm:p-4">
@@ -42,6 +63,7 @@ export function DealForm({ isOpen, onClose }: DealFormProps) {
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
           <h2 className="text-xl font-semibold text-slate-900">Add New Deal</h2>
           <button
+            type="button"
             onClick={onClose}
             className="rounded-lg p-1 text-muted transition-colors hover:bg-slate-100 hover:text-slate-600"
             aria-label="Close"
@@ -50,7 +72,7 @@ export function DealForm({ isOpen, onClose }: DealFormProps) {
           </button>
         </div>
 
-        <form action={handleSubmit} className="px-6 py-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-4">
           <div className="space-y-4">
             <div>
               <label
@@ -62,11 +84,15 @@ export function DealForm({ isOpen, onClose }: DealFormProps) {
               <input
                 type="text"
                 id="title"
-                name="title"
-                required
-                className="mt-1 block w-full rounded-lg border border-slate-300 bg-surface px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
                 placeholder="e.g., Enterprise Software License"
+                className={`${inputBase} ${errors.title ? inputError : inputOk}`}
+                {...register("title")}
               />
+              {errors.title?.message && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.title.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -79,13 +105,17 @@ export function DealForm({ isOpen, onClose }: DealFormProps) {
               <input
                 type="number"
                 id="value"
-                name="value"
-                required
-                min="0"
-                step="0.01"
-                className="mt-1 block w-full rounded-lg border border-slate-300 bg-surface px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                min={0}
+                step={0.01}
                 placeholder="5000"
+                className={`${inputBase} ${errors.value ? inputError : inputOk}`}
+                {...register("value")}
               />
+              {errors.value?.message && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.value.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -97,17 +127,21 @@ export function DealForm({ isOpen, onClose }: DealFormProps) {
               </label>
               <select
                 id="stage"
-                name="stage"
-                required
-                className="mt-1 block w-full rounded-lg border border-slate-300 bg-surface px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                className={`${inputBase} ${errors.stage ? inputError : inputOk}`}
+                {...register("stage")}
               >
                 <option value="">Select a stage</option>
-                {STAGES.map((stage) => (
+                {DEAL_STAGES.map((stage) => (
                   <option key={stage} value={stage}>
                     {stage}
                   </option>
                 ))}
               </select>
+              {errors.stage?.message && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.stage.message}
+                </p>
+              )}
             </div>
 
             <div>
@@ -120,9 +154,14 @@ export function DealForm({ isOpen, onClose }: DealFormProps) {
               <input
                 type="date"
                 id="closeDate"
-                name="closeDate"
-                className="mt-1 block w-full rounded-lg border border-slate-300 bg-surface px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                className={`${inputBase} ${errors.closeDate ? inputError : inputOk}`}
+                {...register("closeDate")}
               />
+              {errors.closeDate?.message && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.closeDate.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -137,9 +176,16 @@ export function DealForm({ isOpen, onClose }: DealFormProps) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary-700 disabled:opacity-50"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary-700 disabled:opacity-50"
             >
-              {isSubmitting ? "Creating..." : "Create Deal"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  Creating...
+                </>
+              ) : (
+                "Create Deal"
+              )}
             </button>
           </div>
         </form>

@@ -15,6 +15,7 @@ interface DashboardProps {
   deals: DealWithOwner[];
   userRole: string;
   leaderboard: { userId: string; userName: string; totalClosedWonValue: number }[] | null;
+  isLoading?: boolean;
 }
 
 export function Dashboard({
@@ -23,6 +24,7 @@ export function Dashboard({
   deals,
   userRole,
   leaderboard,
+  isLoading,
 }: DashboardProps) {
   const hydrate = useDashboardPreferencesStore((s) => s.hydrate);
 
@@ -36,6 +38,7 @@ export function Dashboard({
       deals={deals}
       userRole={userRole}
       leaderboard={leaderboard}
+      isLoading={isLoading}
     />
   );
 }

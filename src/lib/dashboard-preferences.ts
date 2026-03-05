@@ -112,12 +112,12 @@ export function getDefaultDashboardLayout(visibleIds: GridWidgetId[]): Dashboard
   if (chartsVisible.length) {
     const w = Math.floor(cols / chartsVisible.length);
     chartsVisible.forEach((gridId, i) => {
-      layout.push({ i: gridId, x: i * w, y, w, h: 4, minW: 4, minH: 4 });
+      layout.push({ i: gridId, x: i * w, y, w, h: 6, minW: 4, minH: 4 });
     });
-    y += 4;
+    y += 6;
   }
   if (visibleIds.includes("team_leaderboard")) {
-    layout.push({ i: "team_leaderboard", x: 0, y, w: 12, h: 4, minW: 6, minH: 2 });
+    layout.push({ i: "team_leaderboard", x: 0, y, w: 12, h: 6, minW: 6, minH: 3 });
   }
   return layout;
 }

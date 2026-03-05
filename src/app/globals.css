@@ -19,6 +19,23 @@
   body {
     @apply bg-gradient-to-br from-slate-50 to-slate-100/80 text-slate-900;
   }
+
+  /* WCAG AA: secondary/muted text contrast (at least slate-500 light, slate-400 dark) */
+  .text-muted-foreground {
+    @apply text-slate-500 dark:text-slate-400;
+  }
+
+  /* Keyboard navigation: clear focus-visible ring on interactive elements */
+  a[href],
+  button:not([disabled]),
+  [type="button"],
+  [type="submit"],
+  [type="reset"],
+  input,
+  select,
+  textarea {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2;
+  }
 }
 
 @keyframes kpi-reveal {
@@ -34,4 +51,24 @@
 
 .animate-kpi-reveal {
   animation: kpi-reveal 0.4s ease-out forwards;
+}
+
+/* Premium resize handle for react-grid-layout (south-east only) */
+.react-grid-item > .react-resizable-handle {
+  @apply text-slate-400 transition-colors hover:text-slate-600;
+  background: transparent !important;
+  border: none;
+}
+.react-grid-item > .react-resizable-handle::after {
+  border-color: currentColor;
+}
+.react-grid-item > .react-resizable-handle-se {
+  @apply text-slate-400 hover:text-slate-600;
+}
+.dark .react-grid-item > .react-resizable-handle,
+.dark .react-grid-item > .react-resizable-handle-se {
+  @apply text-slate-500 hover:text-slate-400;
+}
+.dark .react-grid-item > .react-resizable-handle::after {
+  border-color: currentColor;
 }

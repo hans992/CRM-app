@@ -1,39 +1,62 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
-import { createContact } from "@/app/actions/contact";
-import { getCompanies } from "@/app/actions/contact";
+import { Plus, X, Loader2 } from "lucide-react";
+import { contactFormSchema, type ContactFormValues } from "@/lib/zod-schemas";
+import { createContact, getCompanies } from "@/app/actions/contact";
+
+const defaultValues: ContactFormValues = {
+  name: "",
+  email: "",
+  phone: "",
+  companyId: "",
+};
+
+const inputBase =
+  "mt-1 block w-full rounded-lg border bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1";
+const inputError = "border-red-500 focus:border-red-500 focus:ring-red-500";
+const inputOk = "border-slate-200 focus:border-primary-500 focus:ring-primary-500";
 
 export function AddContactButton() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  async function openModal() {
-    setOpen(true);
-    setError(null);
-    const list = await getCompanies();
-    setCompanies(list);
-  }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+    reset,
+  } = useForm<ContactFormValues>({
+    resolver: zodResolver(contactFormSchema),
+    defaultValues,
+  });
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    const form = e.currentTarget;
-    const formData = new FormData(form);
+  useEffect(() => {
+    if (open) {
+      getCompanies().then(setCompanies);
+    }
+  }, [open]);
+
+  async function onSubmit(data: ContactFormValues) {
+    const formData = new FormData();
+    formData.set("name", data.name);
+    formData.set("email", data.email);
+    if (data.phone) formData.set("phone", data.phone);
+    if (data.companyId) formData.set("companyId", data.companyId);
+
     const result = await createContact(formData);
-    setLoading(false);
+
     if (result.error) {
-      setError(result.error);
+      setError("root.serverError", { type: "server", message: result.error });
       return;
     }
+    reset(defaultValues);
     setOpen(false);
-    form.reset();
     router.refresh();
   }
 
@@ -41,7 +64,10 @@ export function AddContactButton() {
     <>
       <button
         type="button"
-        onClick={openModal}
+        onClick={() => {
+          setOpen(true);
+          reset(defaultValues);
+        }}
         className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:opacity-90"
       >
         <Plus className="h-4 w-4" />
@@ -49,43 +75,79 @@ export function AddContactButton() {
       </button>
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setOpen(false)}
+            aria-hidden
+          />
           <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-            <h2 className="text-lg font-semibold text-slate-900">New contact</h2>
-            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-              {error && (
-                <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-slate-900">New contact</h2>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
+              {errors.root?.serverError?.message && (
+                <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {errors.root.serverError.message}
+                </p>
               )}
               <div>
-                <label className="block text-sm font-medium text-slate-700">Name</label>
+                <label htmlFor="contact-name" className="block text-sm font-medium text-slate-700">
+                  Name *
+                </label>
                 <input
-                  name="name"
-                  required
-                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  id="contact-name"
+                  type="text"
+                  className={`${inputBase} ${errors.name ? inputError : inputOk}`}
+                  {...register("name")}
                 />
+                {errors.name?.message && (
+                  <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700">Email</label>
+                <label htmlFor="contact-email" className="block text-sm font-medium text-slate-700">
+                  Email *
+                </label>
                 <input
-                  name="email"
+                  id="contact-email"
                   type="email"
-                  required
-                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  className={`${inputBase} ${errors.email ? inputError : inputOk}`}
+                  {...register("email")}
                 />
+                {errors.email?.message && (
+                  <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700">Phone</label>
+                <label htmlFor="contact-phone" className="block text-sm font-medium text-slate-700">
+                  Phone
+                </label>
                 <input
-                  name="phone"
+                  id="contact-phone"
                   type="tel"
-                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  className={`${inputBase} ${errors.phone ? inputError : inputOk}`}
+                  {...register("phone")}
                 />
+                {errors.phone?.message && (
+                  <p className="mt-1 text-sm text-red-500">{errors.phone.message}</p>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700">Company</label>
+                <label htmlFor="contact-company" className="block text-sm font-medium text-slate-700">
+                  Company
+                </label>
                 <select
-                  name="companyId"
-                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  id="contact-company"
+                  className={`${inputBase} ${errors.companyId ? inputError : inputOk}`}
+                  {...register("companyId")}
                 >
                   <option value="">— None —</option>
                   {companies.map((c) => (
@@ -94,6 +156,9 @@ export function AddContactButton() {
                     </option>
                   ))}
                 </select>
+                {errors.companyId?.message && (
+                  <p className="mt-1 text-sm text-red-500">{errors.companyId.message}</p>
+                )}
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button
@@ -105,10 +170,17 @@ export function AddContactButton() {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                  disabled={isSubmitting}
+                  className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
                 >
-                  {loading ? "Saving…" : "Save"}
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save"
+                  )}
                 </button>
               </div>
             </form>

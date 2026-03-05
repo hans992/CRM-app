@@ -204,8 +204,9 @@ export function RecentDealsTable({ deals }: RecentDealsTableProps) {
             </button>
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200">
+        <div className="w-full overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200" role="table">
+            <caption className="sr-only">Recent deals: name, amount, status, and date</caption>
             <thead className="bg-surface-muted">
               <tr>
                 <th scope="col" className="w-12 px-4 py-3 sm:px-6">

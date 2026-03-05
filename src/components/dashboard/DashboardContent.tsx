@@ -1,12 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
+import type { Layout } from "react-grid-layout";
 import { KPICard } from "./KPICard";
 import { RecentDealsTable } from "./RecentDealsTable";
 import { PipelineFunnelChart } from "./PipelineFunnelChart";
 import { RevenueTrendChart } from "./RevenueTrendChart";
 import { EmptyDashboardState } from "./EmptyDashboardState";
 import { TeamLeaderboard } from "./TeamLeaderboard";
+import { DashboardGrid } from "./DashboardGrid";
+import { WidgetSkeleton } from "./WidgetSkeleton";
 import {
   calculateKPIMetrics,
   calculateTrend,
@@ -21,29 +24,84 @@ import { UserRole } from "@/lib/auth";
 import { useDashboardPreferencesStore } from "@/stores/preferences";
 import {
   getVisibleGridWidgetIds,
+  getDefaultDashboardLayout,
   type GridWidgetId,
+  type DashboardLayout,
 } from "@/lib/dashboard-preferences";
 
 type DealWithOwner = Deal & { owner: { id: string; name: string; email: string } | null };
 
 interface DashboardContentProps {
-  initialLayout: unknown;
+  initialLayout: DashboardLayout | null;
   deals: DealWithOwner[];
   userRole: string;
   leaderboard: { userId: string; userName: string; totalClosedWonValue: number }[] | null;
+  /** When true, show skeleton placeholders instead of data (e.g. while fetching from Zustand/React Query). */
+  isLoading?: boolean;
 }
 
 export function DashboardContent({
-  initialLayout: _initialLayout,
+  initialLayout,
   deals,
   userRole,
   leaderboard,
+  isLoading = false,
 }: DashboardContentProps) {
   const preferences = useDashboardPreferencesStore((s) => s.preferences);
   const visibleIds = useMemo(
     () => getVisibleGridWidgetIds(preferences),
     [preferences]
   );
+
+  const initialLayoutState = useMemo(() => {
+    const ids = getVisibleGridWidgetIds(preferences);
+    if (
+      initialLayout &&
+      Array.isArray(initialLayout) &&
+      initialLayout.length > 0
+    ) {
+      const filtered = initialLayout.filter((item: { i: string }) =>
+        ids.includes(item.i as GridWidgetId)
+      );
+      if (filtered.length > 0) return filtered as Layout;
+    }
+    return getDefaultDashboardLayout(ids) as Layout;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- initial layout once
+
+  const [layout, setLayout] = useState<Layout>(initialLayoutState);
+  const hasSyncedVisibility = useRef(false);
+
+  useEffect(() => {
+    if (!hasSyncedVisibility.current) {
+      hasSyncedVisibility.current = true;
+      return;
+    }
+    setLayout(getDefaultDashboardLayout(visibleIds) as Layout);
+  }, [visibleIds.join(",")]);
+
+  if (isLoading) {
+    const skeletonLayout = layout.length > 0 ? layout : initialLayoutState;
+    return (
+      <div className="space-y-6">
+        <DashboardGrid
+          layout={skeletonLayout}
+          onLayoutChange={() => {}}
+          disabled
+        >
+          {skeletonLayout.map((item) => (
+            <div
+              key={item.i}
+              className="h-full w-full flex flex-col rounded-2xl border border-slate-200 bg-surface p-4 shadow-sm"
+            >
+              <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+                <WidgetSkeleton />
+              </div>
+            </div>
+          ))}
+        </DashboardGrid>
+      </div>
+    );
+  }
 
   if (deals.length === 0) {
     return <EmptyDashboardState />;
@@ -123,15 +181,15 @@ export function DashboardContent({
         );
       case "pipeline_health":
         return (
-          <div className="flex min-h-fit flex-col overflow-visible">
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="flex h-full min-h-0 flex-col">
+            <h2 className="mb-2 shrink-0 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Pipeline health
             </h2>
-            <div className="min-h-fit overflow-visible">
+            <div className="flex-1 min-h-0">
               {funnelData.length > 0 ? (
                 <PipelineFunnelChart data={funnelData} />
               ) : (
-                <div className="flex min-h-32 items-center justify-center rounded-2xl border border-slate-200 bg-surface py-8 text-muted">
+                <div className="flex h-full min-h-0 items-center justify-center rounded-2xl border border-slate-200 bg-surface py-8 text-muted">
                   <p className="text-sm">No data for this period</p>
                 </div>
               )}
@@ -140,11 +198,11 @@ export function DashboardContent({
         );
       case "revenue_trend":
         return (
-          <div className="flex min-h-fit flex-col overflow-visible">
-            <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="flex h-full min-h-0 flex-col">
+            <h2 className="mb-2 shrink-0 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Revenue trend
             </h2>
-            <div className="min-h-fit overflow-visible">
+            <div className="flex-1 min-h-0">
               <RevenueTrendChart data={trendData} />
             </div>
           </div>
@@ -156,27 +214,29 @@ export function DashboardContent({
     }
   };
 
-  const gridWidgets = visibleIds
-    .map((id) => {
-      const content = renderWidget(id);
-      if (!content) return null;
-      return (
-        <div
-          key={id}
-          className="flex min-h-fit flex-col overflow-visible rounded-2xl border border-slate-200 bg-surface p-4 shadow-sm"
-        >
-          {content}
+  const gridWidgets = layout.map((item) => {
+    const content = renderWidget(item.i as GridWidgetId);
+    return (
+      <div
+        key={item.i}
+        className="h-full w-full flex flex-col rounded-2xl border border-slate-200 bg-surface p-4 shadow-sm"
+      >
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          {content || <div className="min-h-[80px]" aria-hidden />}
         </div>
-      );
-    })
-    .filter(Boolean);
+      </div>
+    );
+  });
 
   return (
     <div className="space-y-6">
       {gridWidgets.length > 0 && (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <DashboardGrid
+          layout={layout}
+          onLayoutChange={(newLayout) => setLayout(newLayout)}
+        >
           {gridWidgets}
-        </div>
+        </DashboardGrid>
       )}
 
       <RecentDealsTable deals={deals} />

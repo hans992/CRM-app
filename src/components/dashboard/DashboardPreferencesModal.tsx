@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Settings, X } from "lucide-react";
 import { useDashboardPreferencesStore } from "@/stores/preferences";
 import { updateUserDashboardPreferences } from "@/app/actions/preferences";
@@ -46,17 +46,37 @@ export function DashboardPreferencesModal({ open, onClose }: DashboardPreference
     setLocal((prev) => ({ ...prev, [key]: value }));
   }
 
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const firstFocusable = panelRef.current?.querySelector<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    firstFocusable?.focus();
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="dashboard-prefs-title">
       <div className="absolute inset-0 bg-black/40" aria-hidden onClick={onClose} />
       <div
+        ref={panelRef}
         className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl"
         style={{ boxShadow: "var(--shadow-modal)" }}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">Dashboard preferences</h2>
+          <h2 id="dashboard-prefs-title" className="text-lg font-semibold text-slate-900">Dashboard preferences</h2>
           <button
             type="button"
             onClick={onClose}
