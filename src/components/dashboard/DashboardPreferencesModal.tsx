@@ -8,6 +8,7 @@ import {
   type DashboardPreferences,
   DASHBOARD_WIDGET_IDS,
 } from "@/lib/dashboard-preferences";
+import { useBodyScrollLock, useEscapeKey, useFocusTrap } from "@/lib/modal-a11y";
 
 const WIDGET_LABELS: Record<keyof DashboardPreferences, string> = {
   show_total_deals: "Total Deals",
@@ -47,23 +48,9 @@ export function DashboardPreferencesModal({ open, onClose }: DashboardPreference
   }
 
   const panelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const firstFocusable = panelRef.current?.querySelector<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    firstFocusable?.focus();
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
+  useEscapeKey(open, onClose);
+  useBodyScrollLock(open);
+  useFocusTrap(open, panelRef);
 
   if (!open) return null;
 
@@ -82,6 +69,7 @@ export function DashboardPreferencesModal({ open, onClose }: DashboardPreference
             onClick={onClose}
             className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
             aria-label="Close"
+            data-autofocus
           >
             <X className="h-5 w-5" />
           </button>

@@ -16,6 +16,9 @@ interface DashboardProps {
   userRole: string;
   leaderboard: { userId: string; userName: string; totalClosedWonValue: number }[] | null;
   isLoading?: boolean;
+  showRecentDealsTable?: boolean;
+  persistLayout?: boolean;
+  gridDisabled?: boolean;
 }
 
 export function Dashboard({
@@ -25,6 +28,9 @@ export function Dashboard({
   userRole,
   leaderboard,
   isLoading,
+  showRecentDealsTable,
+  persistLayout,
+  gridDisabled,
 }: DashboardProps) {
   const hydrate = useDashboardPreferencesStore((s) => s.hydrate);
 
@@ -39,6 +45,9 @@ export function Dashboard({
       userRole={userRole}
       leaderboard={leaderboard}
       isLoading={isLoading}
+      showRecentDealsTable={showRecentDealsTable}
+      persistLayout={persistLayout}
+      gridDisabled={gridDisabled}
     />
   );
 }

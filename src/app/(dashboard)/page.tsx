@@ -96,6 +96,14 @@ export default async function DealsPage({ searchParams }: HomeProps) {
       ? await getLeaderboard()
       : null;
 
+  const canFilterByOwner = canAccessAllDeals(user.role as import("@/lib/auth").UserRole);
+  const owners = canFilterByOwner
+    ? await prisma.user.findMany({
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+      })
+    : [];
+
   const initialPreferences = await getUserDashboardPreferences();
   const initialLayout = await getDashboardLayout();
 
@@ -113,7 +121,7 @@ export default async function DealsPage({ searchParams }: HomeProps) {
       </header>
 
       <Suspense fallback={<div className="h-10 animate-pulse rounded-lg bg-slate-200" />}>
-        <DashboardFilters />
+        <DashboardFilters canFilterByOwner={canFilterByOwner} owners={owners} />
       </Suspense>
 
       <div className="mt-6">

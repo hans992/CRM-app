@@ -26,7 +26,7 @@ export const dealFormSchema = z.object({
   stage: z
     .string()
     .min(1, { message: "Please select a stage" })
-    .refine((s): s is DealStage => DEAL_STAGES.includes(s as DealStage), {
+    .refine((s) => DEAL_STAGES.includes(s as DealStage), {
       message: "Please select a valid stage",
     }),
   closeDate: z.string().optional(),

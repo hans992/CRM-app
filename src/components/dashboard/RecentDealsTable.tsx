@@ -171,6 +171,7 @@ export function RecentDealsTable({ deals }: RecentDealsTableProps) {
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">{selectedIds.size} selected</span>
                 <select
+                  aria-label="Change status for selected deals"
                   onChange={(e) => {
                     if (e.target.value) handleBulkStatusUpdate(e.target.value);
                   }}
@@ -198,9 +199,10 @@ export function RecentDealsTable({ deals }: RecentDealsTableProps) {
             <button
               onClick={() => downloadCSV(recentDeals)}
               className="flex items-center gap-1 rounded-lg border border-slate-300 bg-surface px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              aria-label="Export recent deals to CSV (10 rows)"
             >
               <Download className="h-4 w-4" />
-              CSV
+              CSV (10)
             </button>
           </div>
         </div>
@@ -214,6 +216,7 @@ export function RecentDealsTable({ deals }: RecentDealsTableProps) {
                     type="checkbox"
                     checked={selectedIds.size === recentDeals.length && recentDeals.length > 0}
                     onChange={toggleSelectAll}
+                    aria-label="Select all recent deals"
                     className="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                   />
                 </th>
@@ -241,23 +244,23 @@ export function RecentDealsTable({ deals }: RecentDealsTableProps) {
                 >
                   Date
                 </th>
+                <th scope="col" className="px-4 py-3 sm:px-6">
+                  <span className="sr-only">Actions</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 bg-surface">
               {recentDeals.map((deal) => (
                 <tr
                   key={deal.id}
-                  className="cursor-pointer transition-colors hover:bg-slate-50/80"
-                  onClick={() => setSelectedDeal(deal)}
+                  className="transition-colors hover:bg-slate-50/80"
                 >
-                  <td
-                    className="px-4 py-4 sm:px-6"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <td className="px-4 py-4 sm:px-6">
                     <input
                       type="checkbox"
                       checked={selectedIds.has(deal.id)}
                       onChange={() => toggleSelect(deal.id)}
+                      aria-label={`Select deal ${deal.title}`}
                       className="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                     />
                   </td>
@@ -272,6 +275,15 @@ export function RecentDealsTable({ deals }: RecentDealsTableProps) {
                   </td>
                   <td className="whitespace-nowrap px-4 py-4 text-sm text-muted-foreground sm:px-6">
                     {formatDate(deal.createdAt)}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4 text-right sm:px-6">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDeal(deal)}
+                      className="rounded-lg border border-slate-300 bg-surface px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    >
+                      View
+                    </button>
                   </td>
                 </tr>
               ))}

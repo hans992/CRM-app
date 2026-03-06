@@ -19,6 +19,8 @@ interface DashboardGridProps {
   children: React.ReactNode;
   /** When true, dragging and resizing are disabled (e.g. during loading). */
   disabled?: boolean;
+  /** When false, layout changes are not saved to the server. */
+  persistLayout?: boolean;
 }
 
 export function DashboardGrid({
@@ -26,24 +28,26 @@ export function DashboardGrid({
   onLayoutChange,
   children,
   disabled = false,
+  persistLayout = true,
 }: DashboardGridProps) {
   const [saving, setSaving] = useState(false);
 
   const handleLayoutChange = useCallback(
     (newLayout: Layout) => {
       onLayoutChange(newLayout);
+      if (!persistLayout) return;
       setSaving(true);
       // Persists full layout (including w/h from resize and x/y from drag) to the API.
       updateDashboardLayout(newLayout as DashboardLayoutItem[]).then(() => {
         setSaving(false);
       });
     },
-    [onLayoutChange]
+    [onLayoutChange, persistLayout]
   );
 
   return (
     <div className="relative w-full overflow-x-auto min-w-0">
-      {saving && (
+      {persistLayout && saving && (
         <div className="absolute right-0 top-0 z-10 rounded bg-slate-800 px-2 py-1 text-xs text-white">
           Saving…
         </div>

@@ -1,10 +1,12 @@
 "use client";
 
+import { useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Loader2 } from "lucide-react";
 import { dealFormSchema, type DealFormValues, DEAL_STAGES } from "@/lib/zod-schemas";
 import { createDeal } from "@/app/actions/deal";
+import { useBodyScrollLock, useEscapeKey, useFocusTrap } from "@/lib/modal-a11y";
 
 interface DealFormProps {
   isOpen: boolean;
@@ -19,6 +21,7 @@ const defaultValues: DealFormValues = {
 };
 
 export function DealForm({ isOpen, onClose }: DealFormProps) {
+  const dialogRef = useRef<HTMLDivElement | null>(null);
   const {
     register,
     handleSubmit,
@@ -28,6 +31,10 @@ export function DealForm({ isOpen, onClose }: DealFormProps) {
     resolver: zodResolver(dealFormSchema),
     defaultValues,
   });
+
+  useEscapeKey(isOpen, onClose);
+  useBodyScrollLock(isOpen);
+  useFocusTrap(isOpen, dialogRef);
 
   if (!isOpen) return null;
 
@@ -58,10 +65,22 @@ export function DealForm({ isOpen, onClose }: DealFormProps) {
     "border-slate-300 focus:border-primary-500 focus:ring-primary-500";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm p-0 sm:items-center sm:p-4">
-      <div className="relative flex max-h-[90vh] w-full flex-col overflow-y-auto rounded-t-3xl bg-surface shadow-modal sm:max-h-[85vh] sm:max-w-md sm:rounded-2xl">
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm p-0 sm:items-center sm:p-4"
+      onClick={onClose}
+    >
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deal-form-title"
+        className="relative flex max-h-[90vh] w-full flex-col overflow-y-auto rounded-t-3xl bg-surface shadow-modal sm:max-h-[85vh] sm:max-w-md sm:rounded-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-          <h2 className="text-xl font-semibold text-slate-900">Add New Deal</h2>
+          <h2 id="deal-form-title" className="text-xl font-semibold text-slate-900">
+            Add New Deal
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -86,6 +105,7 @@ export function DealForm({ isOpen, onClose }: DealFormProps) {
                 id="title"
                 placeholder="e.g., Enterprise Software License"
                 className={`${inputBase} ${errors.title ? inputError : inputOk}`}
+                data-autofocus
                 {...register("title")}
               />
               {errors.title?.message && (

@@ -64,7 +64,7 @@ export function TasksList({ tasks, users }: TasksListProps) {
       {tasks.map((task) => (
         <div
           key={task.id}
-          className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+          className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4"
         >
           <div className="min-w-0 flex-1">
             <p className="font-medium text-slate-900">{task.title}</p>
@@ -92,13 +92,14 @@ export function TasksList({ tasks, users }: TasksListProps) {
               )}
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-auto">
             <select
               value={task.status}
               onChange={(e) =>
                 handleStatusChange(task.id, e.target.value as "TODO" | "IN_PROGRESS" | "DONE")
               }
-              className={`rounded-lg border-0 px-2.5 py-1.5 text-xs font-medium ${
+              aria-label={`Status for ${task.title}`}
+              className={`rounded-lg border border-transparent px-2.5 py-1.5 text-xs font-medium focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 ${
                 STATUS_COLORS[task.status] ?? "bg-slate-100 text-slate-800"
               }`}
             >

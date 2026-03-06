@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { Plus, X, Loader2 } from "lucide-react";
 import { contactFormSchema, type ContactFormValues } from "@/lib/zod-schemas";
 import { createContact, getCompanies } from "@/app/actions/contact";
+import { useBodyScrollLock, useEscapeKey, useFocusTrap } from "@/lib/modal-a11y";
 
 const defaultValues: ContactFormValues = {
   name: "",
@@ -24,6 +25,7 @@ export function AddContactButton() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
 
   const {
     register,
@@ -41,6 +43,10 @@ export function AddContactButton() {
       getCompanies().then(setCompanies);
     }
   }, [open]);
+
+  useEscapeKey(open, () => setOpen(false));
+  useBodyScrollLock(open);
+  useFocusTrap(open, dialogRef);
 
   async function onSubmit(data: ContactFormValues) {
     const formData = new FormData();
@@ -80,9 +86,18 @@ export function AddContactButton() {
             onClick={() => setOpen(false)}
             aria-hidden
           />
-          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-contact-title"
+            className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">New contact</h2>
+              <h2 id="add-contact-title" className="text-lg font-semibold text-slate-900">
+                New contact
+              </h2>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
@@ -105,6 +120,7 @@ export function AddContactButton() {
                 <input
                   id="contact-name"
                   type="text"
+                  data-autofocus
                   className={`${inputBase} ${errors.name ? inputError : inputOk}`}
                   {...register("name")}
                 />

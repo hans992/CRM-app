@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { Plus, X, Loader2 } from "lucide-react";
 import { taskFormSchema, type TaskFormValues, TASK_STATUSES } from "@/lib/zod-schemas";
 import { createTask } from "@/app/actions/task";
+import { useBodyScrollLock, useEscapeKey, useFocusTrap } from "@/lib/modal-a11y";
 
 interface AddTaskButtonProps {
   users: { id: string; name: string; email: string }[];
@@ -28,6 +29,7 @@ const inputOk = "border-slate-200 focus:border-primary-500 focus:ring-primary-50
 export function AddTaskButton({ users }: AddTaskButtonProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
 
   const {
     register,
@@ -39,6 +41,10 @@ export function AddTaskButton({ users }: AddTaskButtonProps) {
     resolver: zodResolver(taskFormSchema),
     defaultValues,
   });
+
+  useEscapeKey(open, () => setOpen(false));
+  useBodyScrollLock(open);
+  useFocusTrap(open, dialogRef);
 
   async function onSubmit(data: TaskFormValues) {
     const formData = new FormData();
@@ -79,9 +85,18 @@ export function AddTaskButton({ users }: AddTaskButtonProps) {
             onClick={() => setOpen(false)}
             aria-hidden
           />
-          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-task-title"
+            className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">New task</h2>
+              <h2 id="add-task-title" className="text-lg font-semibold text-slate-900">
+                New task
+              </h2>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
@@ -104,6 +119,7 @@ export function AddTaskButton({ users }: AddTaskButtonProps) {
                 <input
                   id="task-title"
                   type="text"
+                  data-autofocus
                   className={`${inputBase} ${errors.title ? inputError : inputOk}`}
                   {...register("title")}
                 />

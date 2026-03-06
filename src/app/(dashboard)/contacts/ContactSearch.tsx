@@ -1,30 +1,45 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 
 export function ContactSearch() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [value, setValue] = useState(searchParams.get("q") ?? "");
+  const pathname = usePathname();
+  const currentQ = searchParams.get("q") ?? "";
+  const [value, setValue] = useState(currentQ);
+
+  useEffect(() => {
+    setValue(currentQ);
+  }, [currentQ]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const params = new URLSearchParams(searchParams.toString());
-    if (value.trim()) {
-      params.set("q", value.trim());
+    const next = value.trim();
+    if (next) {
+      params.set("q", next);
     } else {
       params.delete("q");
     }
-    router.push(`/contacts?${params.toString()}`);
+    const qs = params.toString();
+    router.push(qs ? `${pathname}?${qs}` : pathname);
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-2">
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <label htmlFor="contact-search" className="sr-only">
+          Search contacts
+        </label>
+        <Search
+          className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+          aria-hidden
+        />
         <input
+          id="contact-search"
           type="search"
           value={value}
           onChange={(e) => setValue(e.target.value)}

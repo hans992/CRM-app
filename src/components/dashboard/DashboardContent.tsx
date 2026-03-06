@@ -38,6 +38,12 @@ interface DashboardContentProps {
   leaderboard: { userId: string; userName: string; totalClosedWonValue: number }[] | null;
   /** When true, show skeleton placeholders instead of data (e.g. while fetching from Zustand/React Query). */
   isLoading?: boolean;
+  /** When false, hide the Recent Deals table section entirely. */
+  showRecentDealsTable?: boolean;
+  /** When false, layout changes do not persist to the server. */
+  persistLayout?: boolean;
+  /** When true, the grid cannot be dragged/resized (read-only view). */
+  gridDisabled?: boolean;
 }
 
 export function DashboardContent({
@@ -46,6 +52,9 @@ export function DashboardContent({
   userRole,
   leaderboard,
   isLoading = false,
+  showRecentDealsTable = true,
+  persistLayout = true,
+  gridDisabled = false,
 }: DashboardContentProps) {
   const preferences = useDashboardPreferencesStore((s) => s.preferences);
   const visibleIds = useMemo(
@@ -87,6 +96,7 @@ export function DashboardContent({
           layout={skeletonLayout}
           onLayoutChange={() => {}}
           disabled
+          persistLayout={persistLayout}
         >
           {skeletonLayout.map((item) => (
             <div
@@ -234,12 +244,14 @@ export function DashboardContent({
         <DashboardGrid
           layout={layout}
           onLayoutChange={(newLayout) => setLayout(newLayout)}
+          disabled={gridDisabled}
+          persistLayout={persistLayout}
         >
           {gridWidgets}
         </DashboardGrid>
       )}
 
-      <RecentDealsTable deals={deals} />
+      {showRecentDealsTable && <RecentDealsTable deals={deals} />}
     </div>
   );
 }

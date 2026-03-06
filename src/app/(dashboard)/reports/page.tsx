@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser, canAccessAllDeals } from "@/lib/auth";
 import { getDateRangeFilter, getStatusFilter } from "@/lib/filters";
 import { ReportsFilters } from "./ReportsFilters";
-import { ReportsView } from "./ReportsView";
+import { getDashboardLayout, getUserDashboardPreferences } from "@/app/actions/preferences";
+import { Dashboard } from "@/components/dashboard";
 
 const getDeals = cache(
   async (
@@ -85,6 +86,9 @@ export default async function ReportsPage({
     ? await getLeaderboard()
     : null;
 
+  const initialPreferences = await getUserDashboardPreferences();
+  const initialLayout = await getDashboardLayout();
+
   return (
     <>
       <header className="mb-6 border-b border-slate-200 pb-4">
@@ -101,7 +105,16 @@ export default async function ReportsPage({
       </Suspense>
 
       <div className="mt-6">
-        <ReportsView deals={deals} userRole={user.role} leaderboard={leaderboard} />
+        <Dashboard
+          deals={deals}
+          userRole={user.role}
+          leaderboard={leaderboard}
+          initialPreferences={initialPreferences}
+          initialLayout={initialLayout}
+          showRecentDealsTable={false}
+          gridDisabled
+          persistLayout={false}
+        />
       </div>
     </>
   );

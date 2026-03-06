@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, MessageSquare } from "lucide-react";
 import type { Deal } from "@prisma/client";
 import { OptimisticNoteForm } from "./OptimisticNoteForm";
+import { useBodyScrollLock, useEscapeKey, useFocusTrap } from "@/lib/modal-a11y";
 
 interface Note {
   id: string;
@@ -38,12 +39,18 @@ function formatDate(date: Date) {
 
 export function DealDetailView({ deal, notes, isOpen, onClose }: DealDetailViewProps) {
   const [localNotes, setLocalNotes] = useState(notes);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const open = isOpen && !!deal;
 
   useEffect(() => {
     setLocalNotes(notes);
   }, [notes]);
 
-  if (!isOpen || !deal) return null;
+  useEscapeKey(open, onClose);
+  useBodyScrollLock(open);
+  useFocusTrap(open, dialogRef);
+
+  if (!open || !deal) return null;
 
   function handleNoteAdded(newNote: Note) {
     setLocalNotes([newNote, ...localNotes]);
@@ -54,11 +61,23 @@ export function DealDetailView({ deal, notes, isOpen, onClose }: DealDetailViewP
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-end bg-black/50 backdrop-blur-sm sm:items-center sm:justify-center">
-      <div className="flex h-full w-full max-w-2xl flex-col overflow-y-auto bg-surface shadow-modal sm:h-auto sm:max-h-[90vh] sm:rounded-2xl">
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-end bg-black/50 backdrop-blur-sm sm:items-center sm:justify-center"
+      onClick={onClose}
+    >
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deal-detail-title"
+        className="flex h-full w-full max-w-2xl flex-col overflow-y-auto bg-surface shadow-modal sm:h-auto sm:max-h-[90vh] sm:rounded-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="sticky top-0 flex items-center justify-between border-b border-slate-200 bg-surface px-6 py-4">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">{deal.title}</h2>
+            <h2 id="deal-detail-title" className="text-xl font-semibold text-slate-900">
+              {deal.title}
+            </h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {formatCurrency(deal.value)} • {deal.stage}
             </p>
@@ -67,6 +86,7 @@ export function DealDetailView({ deal, notes, isOpen, onClose }: DealDetailViewP
             onClick={onClose}
             className="rounded-lg p-1 text-muted transition-colors hover:bg-slate-100 hover:text-slate-600"
             aria-label="Close"
+            data-autofocus
           >
             <X className="h-5 w-5" />
           </button>

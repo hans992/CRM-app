@@ -9,8 +9,10 @@ A Next.js CRM with customizable dashboard KPIs, pipeline (table + Kanban), conta
 - **Prisma** – ORM and migrations (SQLite by default)
 - **Tailwind CSS** – styling
 - **Recharts** – pipeline funnel chart, revenue trend (area) chart
-- **Zod** – validation for forms and server actions
+- **Zod** – validation for forms and server actions; client form schemas in `/src/lib/zod-schemas.ts`
+- **react-hook-form** + **@hookform/resolvers** – Deal, Contact, and Task forms with `register`, error messages, and loading states
 - **Zustand** – client state for dashboard preferences (hydrated from server)
+- **react-grid-layout** – resizable, draggable dashboard widget grid
 - **@dnd-kit** – drag-and-drop for pipeline Kanban board
 - **TypeScript** – end-to-end typing
 
@@ -18,13 +20,13 @@ A Next.js CRM with customizable dashboard KPIs, pipeline (table + Kanban), conta
 
 ### Routes
 
-- **`/`** – Deals: dashboard (table view) or Kanban (board view), filters, preferences
+- **`/`** – Deals: dashboard (resizable widget grid with KPI cards, funnel, revenue chart, leaderboard, recent deals), table or Kanban view, filters (including owner for Manager/Admin), preferences; loading state shows widget skeletons
 - **`/login`** – Sign in (email + password; credentials via NextAuth)
-- **`/contacts`** – Contact list, search, add; **`/contacts/[id]`** – contact detail (360° view)
-- **`/tasks`** – Task list, filters, assignee; create/edit/delete tasks
-- **`/reports`** – Reports view (KPIs, pipeline health, revenue trend, leaderboard) with date/status filters
+- **`/contacts`** – Contact list, search (URL-synced), add; **`/contacts/[id]`** – contact detail (360° view)
+- **`/tasks`** – Task list, filters (including assignee), add; create/edit/delete tasks
+- **`/reports`** – Read-only reports view: same KPIs, pipeline health, revenue trend, leaderboard, and date/status/owner filters as the Deals dashboard; no widget drag/resize and no layout persistence
 
-Layout: **AppShell** (collapsible sidebar + main content) wraps all dashboard routes; auth middleware protects `/`, `/contacts`, `/tasks`, `/reports`.
+Layout: **AppShell** (collapsible sidebar on desktop; **bottom navigation on mobile**) wraps all dashboard routes; auth middleware protects `/`, `/contacts`, `/tasks`, `/reports`.
 
 ### KPI Engine (`/src/lib/calculations`)
 
@@ -126,29 +128,31 @@ Formulas are implemented in **`/src/lib/calculations/kpi.ts`**.
 src/
   app/
     (dashboard)/           # Protected routes: layout (AppShell), page (Deals), contacts, tasks, reports
-      page.tsx             # Deals: table or Kanban, dashboard widgets, filters
+      page.tsx             # Deals: table or Kanban, resizable dashboard widgets, filters, preferences
       layout.tsx           # getCurrentUser, AppShell
       contacts/            # List, search, add; [id] detail
       tasks/               # List, filters, add
-      reports/             # ReportsView, ReportsFilters
+      reports/             # ReportsView (read-only dashboard), ReportsFilters
     login/
       page.tsx             # Sign-in form (NextAuth credentials)
     api/auth/[...nextauth]/  # NextAuth route handlers
     actions/               # Server actions: auth, deal, note, deal-bulk, seed, contact, task, preferences
     layout.tsx
   components/
-    dashboard/             # Dashboard, DashboardContent, KPICard, PipelineKanban, etc.
+    dashboard/             # Dashboard, DashboardContent, DashboardGrid, WidgetSkeleton, KPICard, PipelineKanban, etc.
     layout/
-      AppShell.tsx         # Sidebar (Deals, Contacts, Tasks, Reports), user menu
+      AppShell.tsx         # Sidebar (hidden on mobile), bottom nav (mobile), user menu
   lib/
     calculations/         # KPI engine (kpi.ts, index.ts)
-    auth.ts               # getCurrentUser, canAccessAllDeals, UserRole
-    prisma.ts             # Prisma client singleton
-    seed.ts               # Reusable seed logic (CLI + Import Sample Data)
-    filters.ts            # Date/status filter helpers
+    auth.ts                # getCurrentUser, canAccessAllDeals, UserRole
+    prisma.ts              # Prisma client singleton
+    seed.ts                # Reusable seed logic (CLI + Import Sample Data)
+    filters.ts             # Date/status filter helpers
+    zod-schemas.ts         # Zod schemas: client forms (deal, contact, task) + server actions
+    modal-a11y.ts          # Dialog utilities: useEscapeKey, useBodyScrollLock, useFocusTrap
 prisma/
   schema.prisma            # User, Contact, Company, Deal, Note, Task, Activity
-  seed.ts                 # CLI seed (users + runSeed)
+  seed.ts                  # CLI seed (users + runSeed)
 ```
 
 ## Conventions
@@ -157,4 +161,6 @@ prisma/
 - **KPI and formulas** live in `/lib/calculations` only.
 - **Server actions** for mutations and for on-demand reads (e.g. notes for deal detail).
 - **NextAuth** for auth; middleware protects dashboard routes; RBAC in `getCurrentUser` and server logic.
+- **Forms**: Deal, Contact, and Task add/edit flows use **react-hook-form** with **zodResolver** and schemas from `zod-schemas.ts`; inline errors, disabled submit + spinner when submitting.
+- **Modals**: Deal detail/form, Contact add, Task add, and dashboard preferences use shared a11y helpers from `modal-a11y.ts` (escape key, scroll lock, focus trap, restore focus). Tables use accessible captions, scoped headers, and keyboard-friendly controls (e.g. explicit View action, CSV export labels).
 - **Include only what you need** in Prisma queries to avoid N+1 and large payloads.
